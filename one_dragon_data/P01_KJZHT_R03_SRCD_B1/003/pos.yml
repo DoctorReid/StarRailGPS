@@ -1,0 +1,22 @@
+c: !!python/object/apply:numpy.core.multiarray.scalar
+- !!python/object/apply:numpy.dtype
+  args:
+  - f4
+  - false
+  - true
+  state: !!python/tuple
+  - 3
+  - <
+  - null
+  - null
+  - null
+  - -1
+  - -1
+  - 0
+- !!binary |
+  5/5SPw==
+h: 240
+region: P01_KJZHT_R03_SRCD_B1
+w: 240
+x: 185
+y: 323
