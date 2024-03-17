@@ -9,7 +9,7 @@ import yaml
 from cv2.typing import MatLike
 
 from basic import Rect, Point
-from utils import os_utils, cv2_utils
+from utils import os_utils, cv2_utils, data_set_utils
 from utils.log_utils import log
 
 
@@ -34,7 +34,10 @@ def get_cal_pos_dir():
     当前项目一条龙坐标数据的位置
     :return:
     """
-    return os.path.join(get_data_dir(), 'cal_pos')
+    dir = os.path.join(get_data_dir(), 'cal_pos')
+    if not os.path.exists(dir):
+        os.mkdir(dir)
+    return dir
 
 
 def get_region_map_dir():
@@ -42,7 +45,10 @@ def get_region_map_dir():
     当前项目一条龙大地图的位置
     :return:
     """
-    return os.path.join(get_data_dir(), 'region_map')
+    dir = os.path.join(get_data_dir(), 'region_map')
+    if not os.path.exists(dir):
+        os.mkdir(dir)
+    return dir
 
 
 def sync_original_cal_pos(target_region: Optional[str] = None, overwrite: bool = False):
@@ -70,7 +76,7 @@ def sync_original_cal_pos(target_region: Optional[str] = None, overwrite: bool =
             continue
 
         current_region_dir = os.path.join(curr_cal_pos_dir, region_id)
-        if overwrite:
+        if overwrite and os.path.exists(current_region_dir):
             shutil.rmtree(current_region_dir)
 
         if not os.path.exists(current_region_dir):
@@ -134,10 +140,11 @@ def sync_original_region_map(target_region: Optional[str] = None):
     log.info('总共同步 %d 张图片', sync)
 
 
-def sync_to_data_set(target_region: Optional[str] = None, overwrite: bool = False):
+def sync_to_data_set(version: int = 0, target_region: Optional[str] = None, overwrite: bool = False):
     sync: int = 0
     map_dir = get_region_map_dir()
     region_list = os.listdir(map_dir)
+    data_set_dir = data_set_utils.get_data_set_dir(version)
     for region_map_path in region_list:
         if not region_map_path.endswith('.png'):
             continue
@@ -150,8 +157,8 @@ def sync_to_data_set(target_region: Optional[str] = None, overwrite: bool = Fals
             log.error('原始坐标数据文件夹不存在 %s', region_id)
             continue
 
-        region_data_dir = os.path.join(map_dir, region_id)
-        if overwrite:
+        region_data_dir = os.path.join(data_set_dir, region_id)
+        if overwrite and os.path.exists(region_data_dir):
             shutil.rmtree(region_data_dir)
 
         if not os.path.exists(region_data_dir):
@@ -196,7 +203,7 @@ def sync_to_data_set(target_region: Optional[str] = None, overwrite: bool = Fals
             od_data['od_x'] = od_data['x']
             od_data['x'] = od_data['od_x'] + bias.x
             od_data['od_y'] = od_data['y']
-            od_data['y'] = od_data['od_y'] + bias.x
+            od_data['y'] = od_data['od_y'] + bias.y
 
             data_mm_path = os.path.join(data_case_dir, 'mm.png')
             shutil.copy2(od_mm_path, data_mm_path)
@@ -244,7 +251,7 @@ def random_crop_region_map(region_map: MatLike, pos: Point) -> Tuple[MatLike, Po
     # 裁剪的图片
     crop_map[sy:ey, sx:ex] = lm[:,:]
     # 边缘部分使用背景色填充
-    bg_color = (60, 60, 60)  # TODO
+    bg_color = (200, 200, 200)
     if sx > 0:
         crop_map[:, 0:sx] = bg_color
     if sy > 0:

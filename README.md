@@ -4,12 +4,19 @@
 
 # 环境说明
 
-代码依赖跟[一条龙](https://github.com/DoctorReid/StarRailOneDragon)一致。
+## 开发环境
 
-在这基础上增加训练模型用的部分[依赖](requirements.txt)。
+### CUDA
 
-由于初始化数据部分需要用到一条龙代码，因此需要将一条龙的 `src` 文件夹也加入到环境的源码
+Ver 12.4 Windows 10 (cuda_12.4.0_551.61_windows)
 
+### pytorch
+
+在 `requirements.txt` 已经指定好版本了，如果安装失败，可以使用官网的命令。
+
+```shell
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+```
 
 ## 环境变量
 

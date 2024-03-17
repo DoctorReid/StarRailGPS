@@ -2,6 +2,7 @@ import os
 from typing import Optional, Tuple
 
 import cv2
+import matplotlib.pyplot as plt
 from cv2.typing import MatLike
 
 from basic import Rect
@@ -118,3 +119,30 @@ def get_overlap_rect(source, template, x, y):
         sy_end -= sy_end - source.shape[0]
 
     return (sx_start, sy_start, sx_end, sy_end), (tx_start, ty_start, tx_end, ty_end)
+
+
+def show_overlap(source, template, x, y, template_scale: float = 1):
+    """
+    在原图上，覆盖显示模板图
+    """
+    if template_scale != 1:
+        # 缩放后的宽度和高度
+        scaled_width = int(template.shape[1] * template_scale)
+        scaled_height = int(template.shape[0] * template_scale)
+
+        # 缩放小图
+        to_show_template = cv2.resize(template, (scaled_width, scaled_height))
+    else:
+        to_show_template = template
+
+    to_show_source = source_overlap_template(source, to_show_template, x, y)
+    show_image(to_show_source)
+
+
+def show_image(img: MatLike):
+    """
+    显示一张图片
+    """
+    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    plt.imshow(img_rgb)
+    plt.show()

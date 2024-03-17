@@ -2,3 +2,5 @@
 .env
 one_dragon_data/
 .ipynb_checkpoints/
+.log/
+jupyter/
