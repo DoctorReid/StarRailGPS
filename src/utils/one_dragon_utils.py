@@ -141,6 +141,9 @@ def sync_original_region_map(target_region: Optional[str] = None):
 
 
 def sync_to_data_set(version: int = 0, target_region: Optional[str] = None, overwrite: bool = False):
+    """
+    从 one_dragon_data 目录同步到 data_set 目录
+    """
     sync: int = 0
     map_dir = get_region_map_dir()
     region_list = os.listdir(map_dir)
@@ -198,12 +201,14 @@ def sync_to_data_set(version: int = 0, target_region: Optional[str] = None, over
             case_match_rect = Rect(od_data['x'], od_data['y'],
                                    od_data['x'] + od_data['w'], od_data['y'] + od_data['h'])
 
-            lm, bias = random_crop_region_map(region_map, case_match_rect.center)
+            lm, bias = random_crop_region_map(region_map, case_match_rect)
 
             od_data['od_x'] = od_data['x']
             od_data['x'] = od_data['od_x'] + bias.x
             od_data['od_y'] = od_data['y']
             od_data['y'] = od_data['od_y'] + bias.y
+            if od_data['x'] < 0 or od_data['y'] < 0:
+                log.error('坐标出现负数 %s %s', region_id, od_case)
 
             data_mm_path = os.path.join(data_case_dir, 'mm.png')
             shutil.copy2(od_mm_path, data_mm_path)
@@ -221,10 +226,10 @@ def sync_to_data_set(version: int = 0, target_region: Optional[str] = None, over
     log.info('总共同步 %d 份样例', sync)
 
 
-def random_crop_region_map(region_map: MatLike, pos: Point) -> Tuple[MatLike, Point]:
+def random_crop_region_map(region_map: MatLike, match_rect: Rect) -> Tuple[MatLike, Point]:
     """
     :param region_map: 大地图
-    :param pos: 原匹配结果的中心点
+    :param match_rect: 原匹配结果
     :return: 裁剪得到的大地图 和 中心坐标的偏移量
     """
     # 人物跑动
@@ -233,9 +238,9 @@ def random_crop_region_map(region_map: MatLike, pos: Point) -> Tuple[MatLike, Po
     run_dis = run_speed * run_seconds
     # 随机偏移一段距离 代表人物上一次所在的坐标 也是大地图上需要裁剪的中心
     bias = Point(random.randint(-run_dis, run_dis), random.randint(-run_dis, run_dis))
-    center = pos + bias
-    # 裁剪的宽度 = 人物跑动距离 + 小地图半径(95) + 容错(10)
-    crop_r = run_dis + 95 + 10
+    center = match_rect.center + bias
+    # 裁剪的宽度 = 人物跑动距离 + 小地图半径(130 缩放后最大值 95 * 1.25) + 容错(10)
+    crop_r = run_dis + 130 + 10
     crop_d = crop_r * 2
     # 裁剪的框
     crop_rect = Rect(center.x - crop_r, center.y - crop_r,
@@ -265,3 +270,12 @@ def random_crop_region_map(region_map: MatLike, pos: Point) -> Tuple[MatLike, Po
     real_bias = Point(0, 0) - real_crop_rect.left_top
 
     return crop_map, real_bias
+
+
+def sync_all(version: int = 0, target_region: Optional[str] = None, overwrite: bool = True):
+    """
+    同步全部
+    """
+    sync_original_region_map(target_region)
+    sync_original_cal_pos(target_region, overwrite=overwrite)
+    sync_to_data_set(version, target_region=target_region, overwrite=overwrite)

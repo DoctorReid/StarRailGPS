@@ -3,4 +3,6 @@
 one_dragon_data/
 .ipynb_checkpoints/
 .log/
-jupyter/
+pytorch-tutorials/
+jupyter/test_*.ipynb
+data_set/
