@@ -134,7 +134,7 @@ def sync_original_region_map(target_region: Optional[str] = None):
                 curr_file_path = os.path.join(curr_region_map_dir, '%s.png' % region_id)
                 shutil.copy2(file_path, curr_file_path)
                 sync += 1
-                log.info('同步大地图图片 %s', region_id)
+                log.debug('同步大地图图片 %s', region_id)
                 break  # 复制其中一张图即可
 
     log.info('总共同步 %d 张图片', sync)
@@ -221,7 +221,7 @@ def sync_to_data_set(version: int = 0, target_region: Optional[str] = None, over
                 yaml.dump(od_data, file)
 
             sync += 1
-            log.info('同步完成 %s %s', region_id, od_case)
+            log.debug('同步完成 %s %s', region_id, od_case)
 
     log.info('总共同步 %d 份样例', sync)
 

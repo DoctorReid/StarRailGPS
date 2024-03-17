@@ -2,6 +2,7 @@ import os
 from typing import List, Tuple
 
 import cv2
+from IPython.core.display_functions import clear_output
 from cv2.typing import MatLike
 import torch
 import torch.nn as nn
@@ -28,8 +29,7 @@ class StarRailGPSDataItemV1:
         # 转化成resnet用的224*224
         transform = transforms.Compose([
             transforms.ToTensor(),
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
+            transforms.Resize(224),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
 
@@ -150,16 +150,19 @@ def train(model: StarRailGPSV1, train_loader: DataLoader, test_loader: DataLoade
             all_predictions.extend(output.tolist())
             all_targets.extend(ans_device.tolist())
 
-            if batch_idx % 10 == 0:
-                log.info(f'Epoch {epoch} Batch {batch_idx} Done. Loss: {loss.item()}')
-
+        #     if batch_idx % 10 == 0:
+        #         log.info(f'Epoch {epoch} Batch {batch_idx} Done. Loss: {loss.item()}')
+        #
+        # if epoch % 100 == 0:
+        #     clear_output()
         if epoch % 10 == 0:
             epoch_loss = criterion(torch.tensor(all_predictions), torch.tensor(all_targets))
-            test_loss = test(model, test_loader, criterion)
+            test_loss = test(model, test_loader, criterion, device=device)
             log.info(f"Epoch {epoch}: Train loss {epoch_loss.item()}. Test loss {test_loss}")
 
 
-def test(model: StarRailGPSV1, loader: DataLoader, criterion):
+def test(model: StarRailGPSV1, loader: DataLoader, criterion,
+         device: str = 'cpu'):
     """
     在训练集上测试模型
     :param model:
@@ -190,11 +193,11 @@ if __name__ == '__main__':
     device = pytorch_utils.get_default_device()
     model = StarRailGPSV1()
     train_dataset, train_loader = get_data(version=1, max_size=50)
-    test_data_set, test_loader = get_data(version=1, max_size=50)
+    test_data_set, test_loader = get_data(version=2, max_size=50)
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
     model.to(device)
     criterion.to(device)
 
-    train(model, train_loader, test_loader, criterion, optimizer, num_epochs=20)
+    train(model, train_loader, test_loader, criterion, optimizer, num_epochs=20, device=device)
